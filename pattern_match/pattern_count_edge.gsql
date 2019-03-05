@@ -5,10 +5,10 @@ DROP QUERY pattern_count_edge
 CREATE QUERY pattern_count_edge() FOR GRAPH social { 
         SumAccum<INT> @@n_pattern;
         Start = {Person.*};
-        Start = SELECT s
-                FROM Start:s -(Friend:e) -> Person:t
-                ACCUM INT through_edge = COUNT(s.neighbors("Friend") INTERSECT t.neighbors("Friend")),
-                      INT through_rev_edge = COUNT(s.neighbors("Also_Friend") INTERSECT t.neighbors("Also_Friend")),
+        Start = SELECT b
+                FROM Start:b -(Friend:e) -> Person:c
+                ACCUM INT through_edge = COUNT(b.neighbors("Friend") INTERSECT c.neighbors("Friend")),
+                      INT through_rev_edge = COUNT(b.neighbors("Also_Friend") INTERSECT c.neighbors("Also_Friend")),
                       @@n_pattern += through_edge * through_rev_edge;
         PRINT @@n_pattern;
 }
