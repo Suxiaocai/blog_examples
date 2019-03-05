@@ -1,0 +1,16 @@
+DROP ALL
+CREATE VERTEX Person (PRIMARY_ID id int, cid int)
+CREATE DIRECTED EDGE Friend (FROM Person, TO Person, weight float) WITH REVERSE_EDGE="Also_Friend"
+CREATE GRAPH social(*)
+
+USE GRAPH social
+drop job load_social
+
+create loading job load_social for graph social{
+        DEFINE FILENAME social_file;
+        LOAD social_file
+                to edge Friend values ($0, $1, 1)
+                using Separator=" ", Header = "false";
+}
+
+run loading job load_social using social_file="data/paper.csv"

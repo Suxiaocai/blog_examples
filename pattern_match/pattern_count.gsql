@@ -1,0 +1,34 @@
+USE GRAPH social
+DROP QUERY pattern_count
+DROP QUERY pattern_count_sub
+
+# sub query 
+CREATE QUERY pattern_count_sub(VERTEX a) FOR GRAPH social returns (INT){ 
+        OrAccum @is_1hop;
+        BagAccum<Vertex> @@typeD;
+        Start = {a};
+        
+        Hop1 = SELECT t
+               FROM Start:s -(Friend:e) -> Person:t
+               ACCUM t.@is_1hop = true; // flag for 
+        Hop2 = SELECT t
+               FROM Hop1:s -(Friend:e) -> Person:t
+               WHERE t.@is_1hop == true  // it is also 1-hop neighbour 
+               ACCUM @@typeD += s.neighbors("Friend") INTERSECT t.neighbors("Friend");   //.neighbors([ STRING edgeType ]) returns a BagAccum, which allows duplicate elements
+                
+        RETURN @@typeD.size();
+}
+
+# main query
+CREATE QUERY pattern_count() FOR GRAPH social { 
+        MapAccum<Vertex, INT> @@pattern_count;
+        Start = {Person.*};
+        Start = SELECT s
+                FROM Start:s
+                ACCUM @@pattern_count += (s -> pattern_count_sub(s));
+        PRINT @@pattern_count;
+}
+
+INSTALL QUERY pattern_count_sub
+INSTALL QUERY pattern_count
+

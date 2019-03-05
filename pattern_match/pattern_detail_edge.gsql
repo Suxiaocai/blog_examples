@@ -1,0 +1,26 @@
+USE GRAPH social
+DROP QUERY pattern_detail_edge
+
+CREATE QUERY pattern_detail_edge(FILE f) FOR GRAPH social { 
+        SumAccum<INT> @@n_pattern;
+        GroupByAccum<VERTEX typeC, BagAccum<VERTEX> typeA, BagAccum<VERTEX> typeD> @patterns;
+        Start = {Person.*};
+
+        f.println("a", "b", "c", "[d]");
+        Start = SELECT s
+                FROM Start:s -(Friend:e) -> Person:t
+                ACCUM s.@patterns += (t -> s.neighbors("Also_Friend") INTERSECT t.neighbors("Also_Friend"), s.neighbors("Friend") INTERSECT t.neighbors("Friend")),
+                      INT through_edge = COUNT(s.neighbors("Friend") INTERSECT t.neighbors("Friend")),
+                      INT through_rev_edge = COUNT(s.neighbors("Also_Friend") INTERSECT t.neighbors("Also_Friend")),
+                      @@n_pattern += through_edge * through_rev_edge
+                POST-ACCUM FOREACH (typeC, typeA, typeD) IN s.@patterns DO
+                                   IF typeA.size() > 0 AND typeD.size() > 0 THEN
+                                           FOREACH a IN typeA DO 
+                                                   f.println(a, s, typeC, typeD)
+                                           END
+                                   END
+                           END;
+        PRINT @@n_pattern;
+}
+
+INSTALL QUERY pattern_detail_edge
