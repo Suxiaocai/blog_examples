@@ -20,7 +20,7 @@ CREATE QUERY pattern_count_sub(VERTEX a) FOR GRAPH social returns (INT){
         RETURN @@typeD.size();
 }
 
-# main query
+# main query: This query print the number of matched patterns for each vertex in the graph
 CREATE QUERY pattern_count() FOR GRAPH social { 
         MapAccum<Vertex, INT> @@pattern_count;
         Start = {Person.*};
