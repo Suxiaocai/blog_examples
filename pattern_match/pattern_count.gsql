@@ -2,7 +2,7 @@ USE GRAPH social
 DROP QUERY pattern_count
 DROP QUERY pattern_count_sub
 
-# sub query 
+# sub query: it returns the number of matched patterns for the source vertex 
 CREATE QUERY pattern_count_sub(VERTEX a) FOR GRAPH social returns (INT){ 
         OrAccum @is_1hop;
         BagAccum<Vertex> @@typeD;
@@ -10,11 +10,12 @@ CREATE QUERY pattern_count_sub(VERTEX a) FOR GRAPH social returns (INT){
         
         Hop1 = SELECT t
                FROM Start:s -(Friend:e) -> Person:t
-               ACCUM t.@is_1hop = true; // flag for 
+               ACCUM t.@is_1hop = true; // flag for 1-hop neighbors
         Hop2 = SELECT t
                FROM Hop1:s -(Friend:e) -> Person:t
-               WHERE t.@is_1hop == true  // it is also 1-hop neighbour 
-               ACCUM @@typeD += s.neighbors("Friend") INTERSECT t.neighbors("Friend");   //.neighbors([ STRING edgeType ]) returns a BagAccum, which allows duplicate elements
+               WHERE t.@is_1hop == true  // it is also 1-hop neighbor of a
+               ACCUM @@typeD += s.neighbors("Friend") INTERSECT t.neighbors("Friend");   
+                     //.neighbors([ STRING edgeType ]) returns a BagAccum, which allows duplicate elements
                 
         RETURN @@typeD.size();
 }
