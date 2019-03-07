@@ -3,21 +3,22 @@ DROP QUERY pattern_count
 DROP QUERY pattern_count_sub
 
 # sub query: return the number of matched patterns for the source vertex 
-CREATE QUERY pattern_count_sub(VERTEX typeA) FOR GRAPH social returns (INT){ 
+CREATE QUERY pattern_count_sub(VERTEX source) FOR GRAPH social returns (INT){ 
         OrAccum @is_1hop;
-        BagAccum<Vertex> @@typeD;
-        Start = {typeA};
+        BagAccum<Vertex> @@d;
+        A = {source};
         
-        Hop1 = SELECT t
-               FROM Start:s -(Friend:e) -> Person:t
-               ACCUM t.@is_1hop = true; // flag for 1-hop neighbors
-        Hop2 = SELECT t
-               FROM Hop1:s -(Friend:e) -> Person:t
-               WHERE t.@is_1hop == true  // both 1-hop neighbour and 2-hop neighbor of typeA
-               ACCUM @@typeD += s.neighbors("Friend") INTERSECT t.neighbors("Friend");   
+        Hop1 = SELECT b
+               FROM A:a -(Friend:e) -> Person:b
+               ACCUM b.@is_1hop = true; // flag for 1-hop neighbors
+        Hop2 = SELECT c
+               FROM Hop1:b -(Friend:e) -> Person:c
+               // check if b and c both have @is_1hop=true -> valid b,c pair
+               WHERE c.@is_1hop == true  // Count how many neighbors b&c have in common -> d's
+               ACCUM @@d += b.neighbors("Friend") INTERSECT c.neighbors("Friend");   
                      //.neighbors([ STRING edgeType ]) returns a BagAccum, which allows duplicate elements
                 
-        RETURN @@typeD.size();
+        RETURN @@d.size();
 }
 
 # main query: print the number of matched patterns for each vertex in the graph

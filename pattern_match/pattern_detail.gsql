@@ -3,23 +3,23 @@ DROP QUERY pattern_detail
 DROP QUERY pattern_detail_sub
 
 # sub query: prints the matched patterns for the source vertex to file 
-CREATE QUERY pattern_detail_sub(VERTEX typeA, FILE f) FOR GRAPH social returns (INT){ 
+CREATE QUERY pattern_detail_sub(VERTEX source, FILE f) FOR GRAPH social returns (INT){ 
         OrAccum @is_1hop;
         MapAccum<VERTEX, BagAccum<VERTEX>> @patterns;
         SumAccum<INT> @@cnt = 0;
-        Start = {typeA};
+        A = {source};
         
-        Hop1 = SELECT t
-               FROM Start:s -(Friend:e) -> Person:t
-               ACCUM t.@is_1hop = true; // flag for 1-hop neighbours
-        Hop2 = SELECT t
-               FROM Hop1:b -(Friend:e) -> Person:t
-               WHERE t.@is_1hop == true  // both 1-hop neighbour and 2-hop neighbour 
-               ACCUM b.@patterns += (t -> b.neighbors("Friend") INTERSECT t.neighbors("Friend"))  
-                       //.neighbors([ STRING edgeType ]) returns a BagAccum, which allows duplicate elements
+        Hop1 = SELECT b
+               FROM A:a -(Friend:e) -> Person:b
+               ACCUM b.@is_1hop = true; // flag for 1-hop neighbours
+        Hop2 = SELECT c
+               FROM Hop1:b -(Friend:e) -> Person:c
+               // check if b and c both have @is_1hop=true -> valid b,c pair
+               WHERE c.@is_1hop == true  
+               ACCUM b.@patterns += (c -> b.neighbors("Friend") INTERSECT c.neighbors("Friend"))  
                POST-ACCUM FOREACH (typeC, typeD) IN b.@patterns DO
                                   IF typeD.size() > 0 THEN
-                                        f.println(typeA, b, typeC, typeD),
+                                        f.println(source, b, typeC, typeD), //(a, b, c, [d]) [d] is a collection of vertex d
                                         @@cnt += typeD.size()
                                   END
                           END;

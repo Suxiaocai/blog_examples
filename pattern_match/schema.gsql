@@ -13,4 +13,4 @@ create loading job load_social for graph social{
                 using Separator=" ", Header = "false";
 }
 
-run loading job load_social using social_file="data/paper.csv"
+run loading job load_social using social_file="data/social.csv"
