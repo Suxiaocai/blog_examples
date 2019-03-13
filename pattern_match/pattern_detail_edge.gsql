@@ -9,7 +9,8 @@ CREATE QUERY pattern_detail_edge(FILE f) FOR GRAPH social {
         f.println("a", "b", "c", "[d]");
         Start = SELECT b
                 FROM Start:b -(Friend:e) -> Person:c
-                ACCUM b.@patterns += (c -> b.neighbors("Also_Friend") INTERSECT c.neighbors("Also_Friend"), b.neighbors("Friend") INTERSECT c.neighbors("Friend"))
+                ACCUM b.@patterns += (c -> b.neighbors("Also_Friend") INTERSECT c.neighbors("Also_Friend"), 
+                                           b.neighbors("Friend") INTERSECT c.neighbors("Friend"))
                 POST-ACCUM FOREACH (typeC, typeA, typeD) IN b.@patterns DO
                                    IF typeA.size() > 0 AND typeD.size() > 0 THEN
                                            @@n_pattern += typeA.size() * typeD.size(),
